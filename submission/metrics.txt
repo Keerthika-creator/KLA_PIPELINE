@@ -1,0 +1,168 @@
+KLA IMAGE RESTORATION — FINAL RESULTS
+=====================================
+
+TASK
+128x128 noisy low-resolution image -> 256x256 restored image
+
+FINAL PIPELINE
+Bicubic 2x upsampling
+-> No pre-model clipping
+-> Multi-Scale Restoration CNN
+-> 4-way test-time augmentation
+-> Prediction averaging
+-> Final [0,1] output clipping
+
+MODEL
+Multi-Scale Restoration CNN
+
+Architecture
+Input channels     : 1
+Feature channels   : 32
+Residual blocks    : 5
+Trainable params   : 251,457
+Checkpoint size    : 2.96 MB
+
+VALIDATION
+Validation samples : 320
+
+BICUBIC BASELINE
+PSNR  : 23.278916 dB
+SSIM  : 0.555406
+LPIPS : 0.431230
+
+MULTI-SCALE CNN
+PSNR  : 28.299785 dB
+SSIM  : 0.761238
+LPIPS : 0.284471
+
+FINAL MULTI-SCALE CNN + 4-WAY TTA
+PSNR  : 28.382919 dB
+SSIM  : 0.763858
+LPIPS : 0.291823
+
+TTA IMPROVEMENT
+PSNR gain : +0.083134 dB
+SSIM gain : +0.002620
+
+CLAMP A/B EXPERIMENT
+Pre-model clamp:
+PSNR : 28.102981 dB
+SSIM : 0.762883
+
+No pre-model clamp:
+PSNR : 28.381920 dB
+SSIM : 0.763841
+
+No-clamp gain:
+PSNR : +0.278939 dB
+SSIM : +0.000958
+
+Bicubic pixels outside [0,1]:
+2.8675%
+
+The final pipeline therefore does not clamp the bicubic image
+before CNN inference. The restored prediction is clipped only
+after model inference.
+
+END-TO-END GPU PERFORMANCE
+GPU                 : NVIDIA GeForce RTX 4050 Laptop GPU
+Batch size          : 4
+Images evaluated    : 320
+Total runtime       : 23.3124 s
+Latency             : 72.851 ms/image
+Throughput          : 13.73 images/sec
+
+MODEL-ONLY BENCHMARK
+Latency             : 12.522 ms/image
+Throughput          : 79.86 images/sec
+
+4-WAY TTA MODEL-ONLY BENCHMARK
+Latency             : 50.225 ms/image
+Throughput          : 19.91 images/sec
+
+OUTPUT FORMATS
+Float32 NPY:
+256x256, float32, values in [0,1]
+
+PNG:
+256x256 grayscale, uint8
+Conversion:
+round(clamp(x,0,1) * 255)
+
+PNG QUANTIZATION TEST — SAMPLE 000000
+Float32 NPY:
+PSNR : 31.635802 dB
+SSIM : 0.894125
+
+PNG converted back to float:
+PSNR : 31.626228 dB
+SSIM : 0.893419
+
+Quantization effect:
+PSNR : -0.009574 dB
+SSIM : -0.000705
+
+SELECTED VISUAL RESULTS
+
+003116
+Bicubic PSNR : 20.112673 dB
+Bicubic SSIM : 0.124146
+Bicubic LPIPS: 0.683073
+
+CNN PSNR     : 33.918810 dB
+CNN SSIM     : 0.763313
+CNN LPIPS    : 0.468014
+
+TTA PSNR     : 34.202019 dB
+TTA SSIM     : 0.770217
+TTA LPIPS    : 0.486368
+
+001111
+Bicubic PSNR : 19.429946 dB
+Bicubic SSIM : 0.428794
+Bicubic LPIPS: 0.490162
+
+CNN PSNR     : 23.544239 dB
+CNN SSIM     : 0.830233
+CNN LPIPS    : 0.186352
+
+TTA PSNR     : 23.604959 dB
+TTA SSIM     : 0.838853
+TTA LPIPS    : 0.179735
+
+001289
+Bicubic PSNR : 23.119561 dB
+Bicubic SSIM : 0.754980
+Bicubic LPIPS: 0.249647
+
+CNN PSNR     : 23.679826 dB
+CNN SSIM     : 0.755093
+CNN LPIPS    : 0.209299
+
+TTA PSNR     : 23.702488 dB
+TTA SSIM     : 0.756310
+TTA LPIPS    : 0.216435
+
+FAILURE-CASE ANALYSIS
+Sample 001289 represents a difficult restoration case. The degraded
+input already has relatively high structural similarity to the target,
+leaving less room for measurable improvement.
+
+Bicubic achieves 23.119561 dB PSNR and 0.754980 SSIM, while the final
+TTA result reaches 23.702488 dB PSNR and 0.756310 SSIM.
+
+The modest improvement indicates that the remaining reconstruction
+error is concentrated in image details that are difficult to recover
+reliably from the degraded input. This case demonstrates that the
+model does not produce uniformly large gains on every image.
+
+EXTERNAL RESOURCES AND LICENSE DISCLOSURE
+The restoration model was trained using the resources provided for
+the KLA image restoration challenge.
+
+No external pretrained image-restoration model weights are used by
+the final restoration model.
+
+The inference implementation uses open-source libraries including
+NumPy, PyTorch, Pillow, scikit-image and LPIPS. Their respective
+licenses remain applicable.

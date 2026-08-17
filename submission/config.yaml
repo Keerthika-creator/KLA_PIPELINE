@@ -1,0 +1,35 @@
+model:
+  name: MultiScaleRestorationCNN
+  input_channels: 1
+  feature_channels: 32
+  residual_blocks: 5
+
+preprocessing:
+  input_scale_factor: 2
+  interpolation: bicubic
+  align_corners: false
+  clamp_before_model: false
+
+inference:
+  test_time_augmentation: true
+  tta_modes: 4
+  batch_size: 4
+
+postprocessing:
+  clamp_output: true
+  float_output: float32
+  png_output: uint8
+  png_scaling: "round(clamp(x,0,1) * 255)"
+
+checkpoint:
+  file: MODEL_CHAMPION_28_2983.pth
+  trainable_parameters: 251457
+
+validation:
+  samples: 320
+  psnr_db: 28.382919
+  ssim: 0.763858
+  lpips: 0.291823
+
+hardware:
+  gpu: "NVIDIA GeForce RTX 4050 Laptop GPU"
